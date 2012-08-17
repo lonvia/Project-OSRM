@@ -72,7 +72,7 @@ bool removeIfUnused(ClassT n) { return (false == n.used); }
 int main (int argc, char *argv[]) {
 
     if(argc < 2) {
-        ERR("usage: \n" << argv[0] << " <file.osm/.osm.bz2/.osm.pbf>");
+        ERR("usage: \n" << argv[0] << " <file.osm/.osm.bz2/.osm.pbf> [output-prefix] [speedprofile]");
     }
 
     //Check if another instance of stxxl is already running or if there is a general problem
@@ -85,26 +85,32 @@ int main (int argc, char *argv[]) {
 
     INFO("extracting data from input file " << argv[1]);
     bool isPBF(false);
-    std::string outputFileName(argv[1]);
-    std::string restrictionsFileName(argv[1]);
-    std::string::size_type pos = outputFileName.find(".osm.bz2");
+    std::string inputFileName(argv[1]);
+    std::string outputFileName(argv[argc < 2?1:2]);
+    std::string restrictionsFileName(argv[argc < 2?1:2]);
+    std::string::size_type pos = inputFileName.find(".osm.bz2");
     if(pos==std::string::npos) {
-        pos = outputFileName.find(".osm.pbf");
+        pos = inputFileName.find(".osm.pbf");
         if(pos!=std::string::npos) {
             isPBF = true;
         }
     }
-    if(pos!=string::npos) {
-        outputFileName.replace(pos, 8, ".osrm");
-        restrictionsFileName.replace(pos, 8, ".osrm.restrictions");
+    if(argc > 2) {
+        outputFileName.append(".osrm");
+        restrictionsFileName.append(".osrm.restrictions");
     } else {
-        pos=outputFileName.find(".osm");
         if(pos!=string::npos) {
-            outputFileName.replace(pos, 5, ".osrm");
-            restrictionsFileName.replace(pos, 5, ".osrm.restrictions");
+            outputFileName.replace(pos, 8, ".osrm");
+            restrictionsFileName.replace(pos, 8, ".osrm.restrictions");
         } else {
-            outputFileName.append(".osrm");
-            restrictionsFileName.append(".osrm.restrictions");
+            pos=outputFileName.find(".osm");
+            if(pos!=string::npos) {
+                outputFileName.replace(pos, 5, ".osrm");
+                restrictionsFileName.replace(pos, 5, ".osrm.restrictions");
+            } else {
+                outputFileName.append(".osrm");
+                restrictionsFileName.append(".osrm.restrictions");
+            }
         }
     }
     std::string adressFileName(outputFileName);
@@ -121,7 +127,7 @@ int main (int argc, char *argv[]) {
             cout << " [" << profileCounter << "]" << name << endl;
             ++profileCounter;
         }
-        std::string usedSpeedProfile(pt.get_child("").begin()->first);
+        std::string usedSpeedProfile(argc < 3?pt.get_child("").begin()->first:argv[3]);
         INFO("Using profile \"" << usedSpeedProfile << "\"")
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child(usedSpeedProfile)) {
             std::string name = v.first;

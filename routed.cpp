@@ -92,7 +92,7 @@ int main (int argc, char *argv[]) {
         pthread_sigmask(SIG_BLOCK, &new_mask, &old_mask);
 #endif
 
-        ServerConfiguration serverConfig("server.ini");
+        ServerConfiguration serverConfig(argc < 1?"server.ini":argv[1]);
         Server * s = ServerFactory::CreateServer(serverConfig);
         RequestHandler & h = s->GetRequestHandlerPtr();
 
